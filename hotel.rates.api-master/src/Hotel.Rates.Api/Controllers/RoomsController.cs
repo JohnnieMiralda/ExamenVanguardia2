@@ -12,17 +12,17 @@ namespace Hotel.Rates.Api.Controllers
     [Route("api/[controller]")]
     public class RoomsController : BaseApiController
     {
-        private readonly IRoomService roomService;
+        private readonly IRoomService _roomService;
 
         public RoomsController(IRoomService roomService)
         {
-            this.roomService = roomService;
+            this._roomService = roomService;
         }
 
         [HttpGet]
         public IActionResult Get()
         {
-            var result = this.roomService.GetRooms();
+            var result = this._roomService.GetRooms();
             return GetResult(result);
         }
 

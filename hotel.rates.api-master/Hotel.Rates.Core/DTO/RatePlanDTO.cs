@@ -6,6 +6,11 @@ namespace Hotel.Rates.Core.DTO
 {
     public class RatePlanDTO
     {
+        public RatePlanDTO()
+        {
+            Seasons = new List<SeasonDTO>();
+            RatePlanRooms = new List<RoomDTO>();
+        }
 
         public int Id { get; set; }
 

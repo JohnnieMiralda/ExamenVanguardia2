@@ -4,9 +4,9 @@ using System.Text;
 
 namespace Hotel.Rates.Core.Rules
 {
-    public abstract class BaseRules
+    public interface BaseRules
     {
-        public abstract bool Applies();
+        double validRules(int id , double days);
 
         
     }

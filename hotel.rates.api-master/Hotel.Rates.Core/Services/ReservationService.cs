@@ -1,6 +1,6 @@
 ﻿using Hotel.Rates.Core.DTO;
 using Hotel.Rates.Core.Interfaces;
-using Hotel.Rates.Data;
+using Hotel.Rates.Core.Rules;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,18 +10,16 @@ namespace Hotel.Rates.Core.Services
 {
     public class ReservationService: IReservationService
     {
-        private readonly IRepository<RatePlan, int> repository;
         private readonly IRatePlanRoomRepository roomRepository;
         private readonly IRatePlanRepository ratePlanRepository;
         private readonly IRepository<IntervalRatePlan, int> intervalRatePlanRepository;
 
         public ReservationService(
-            IRepository<RatePlan, int> repository,
             IRatePlanRoomRepository roomRepository,
             IRatePlanRepository ratePlanRepository,
-            IRepository<IntervalRatePlan, int> intervalRatePlanRepository)
+            IRepository<IntervalRatePlan, int> intervalRatePlanRepository
+            )
         {
-            this.repository = repository;
             this.roomRepository = roomRepository;
             this.ratePlanRepository = ratePlanRepository;
             this.intervalRatePlanRepository = intervalRatePlanRepository;
@@ -30,36 +28,46 @@ namespace Hotel.Rates.Core.Services
 
         public ServiceResult<ReservationDTO> CreateReservation(ReservationDTO reservationModelDTO)
         {
-            var ratePlan = this.repository.GetById(reservationModelDTO.RatePlanId);
+            var ratePlan = this.ratePlanRepository.GetById(reservationModelDTO.RatePlanId);
+            
+
+            var season= ratePlan.Seasons
+                .Any(s => s.StartDate <= reservationModelDTO.ReservationStart && s.EndDate >= reservationModelDTO.ReservationEnd);
+            var room = ratePlan.RatePlanRooms
+                .First(r => r.RoomId == reservationModelDTO.RoomId && r.RatePlanId == reservationModelDTO.RatePlanId);
+            var roomAvailable= room.Room.Amount > 0 &&
+                room.Room.MaxAdults >= reservationModelDTO.AmountOfAdults &&
+                room.Room.MaxChildren >= reservationModelDTO.AmountOfChildren;
+
             if (ratePlan == null)
             {
                 return ServiceResult<ReservationDTO>.ErrorResult("No se encontro el plan solicitado");
             }
-
-
-            var room = ratePlan.RatePlanRooms
-                .First(r => r.RoomId == reservationModelDTO.RoomId && r.RatePlanId == reservationModelDTO.RatePlanId);
-
-            room.Room.Amount -= 1;
-            //this.roomRepository.Update(room);
-
-            return ServiceResult<ReservationDTO>.SuccessResult(new ReservationDTO { Price = 10 });
-        }
-
-        private double ApplyRules(ReservationDTO reservationModelDTO, RatePlan ratePlan)
-        {
-            if (ratePlan != null)
+            if (room == null)
             {
-                //foreach (var rule in rules)
-                //{
-                //   if (rule.Applies(ratePlan))
-                //    {
-                //       
-                //    }
-                //}
+                return ServiceResult<ReservationDTO>.ErrorResult("No hay cuartos disponible");
             }
-            return -1;
-        }
+            if (roomAvailable == false)
+            {
+                return ServiceResult<ReservationDTO>.ErrorResult("No hay cuartos disponible");
+            }
 
+            var days = (reservationModelDTO.ReservationEnd - reservationModelDTO.ReservationStart).TotalDays;
+            BaseRules[] validaciones =
+            {
+                new IntervalRules(ratePlanRepository),
+                new NightlyRule(ratePlanRepository)
+            };
+
+            foreach (var validation in validaciones)
+            {
+                var val = validation.validRules(reservationModelDTO.RatePlanId,days);
+                if (val != -1)
+                {
+                    return ServiceResult<ReservationDTO>.OkResult(new ReservationDTO { Price = (int)val });
+                }
+            }
+            return ServiceResult<ReservationDTO>.ErrorResult("No se pudo hacer la reservacion.");
+        }
     }
 }

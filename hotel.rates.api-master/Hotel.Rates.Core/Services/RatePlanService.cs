@@ -78,7 +78,7 @@ namespace Hotel.Rates.Core.Services
                 }).ToList(),
             };
 
-            return ServiceResult<RatePlanDTO>.SuccessResult(resultRate);
+            return ServiceResult<RatePlanDTO>.OkResult(resultRate);
         }
     }
 }
