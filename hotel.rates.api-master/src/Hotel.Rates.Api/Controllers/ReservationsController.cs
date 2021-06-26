@@ -33,7 +33,11 @@ namespace Hotel.Rates.Api.Controllers
                 ReservationStart = reservationModel.ReservationStart,
                 RoomId = reservationModel.RoomId,
             });
-            return GetResult(result);
+            if (result.ResponseCode== Core.Enums.ResponseCode.Error)
+            {
+                return BadRequest(result.Error);
+            }
+            return Ok(result.Result);
         }
 
     }

@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Hotel.Rates.Core.Rules
 {
-    public class NightlyRule : BaseRules
+    public class NightlyRule : IBaseRules
     {
         private readonly IRatePlanRepository ratePlanRepository;
         public NightlyRule(

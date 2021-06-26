@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Hotel.Rates.Core.Rules
 {
-    public class IntervalRules : BaseRules
+    public class IntervalRules : IBaseRules
     {
         private readonly IRatePlanRepository ratePlanRepository;
         public IntervalRules(

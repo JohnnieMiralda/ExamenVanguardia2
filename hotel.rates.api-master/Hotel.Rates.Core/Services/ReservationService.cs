@@ -13,16 +13,19 @@ namespace Hotel.Rates.Core.Services
         private readonly IRatePlanRoomRepository roomRepository;
         private readonly IRatePlanRepository ratePlanRepository;
         private readonly IRepository<IntervalRatePlan, int> intervalRatePlanRepository;
+        private readonly IRoomRepository roomsave;
 
         public ReservationService(
             IRatePlanRoomRepository roomRepository,
             IRatePlanRepository ratePlanRepository,
-            IRepository<IntervalRatePlan, int> intervalRatePlanRepository
+            IRepository<IntervalRatePlan, int> intervalRatePlanRepository,
+            IRoomRepository roomsave
             )
         {
             this.roomRepository = roomRepository;
             this.ratePlanRepository = ratePlanRepository;
             this.intervalRatePlanRepository = intervalRatePlanRepository;
+            this.roomsave= roomsave;
         }
 
 
@@ -53,7 +56,7 @@ namespace Hotel.Rates.Core.Services
             }
 
             var days = (reservationModelDTO.ReservationEnd - reservationModelDTO.ReservationStart).TotalDays;
-            BaseRules[] validaciones =
+            IBaseRules[] validaciones =
             {
                 new IntervalRules(ratePlanRepository),
                 new NightlyRule(ratePlanRepository)
@@ -64,7 +67,8 @@ namespace Hotel.Rates.Core.Services
                 var val = validation.validRules(reservationModelDTO.RatePlanId,days);
                 if (val != -1)
                 {
-                    return ServiceResult<ReservationDTO>.OkResult(new ReservationDTO { Price = (int)val });
+                    roomsave.minusroom(room.Room.Amount);
+                    return ServiceResult<ReservationDTO>.SuccessResult(new ReservationDTO { Price = (int)val });
                 }
             }
             return ServiceResult<ReservationDTO>.ErrorResult("No se pudo hacer la reservacion.");

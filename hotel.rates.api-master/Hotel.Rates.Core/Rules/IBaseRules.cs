@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Hotel.Rates.Core.Rules
 {
-    public interface BaseRules
+    public interface IBaseRules
     {
         double validRules(int id , double days);
 

@@ -8,6 +8,8 @@ namespace Hotel.Rates.Core.Interfaces
     public interface IRoomRepository
     {
         IReadOnlyList<Room> GetAll();
+
+        void minusroom(int s);
     }
 
 }

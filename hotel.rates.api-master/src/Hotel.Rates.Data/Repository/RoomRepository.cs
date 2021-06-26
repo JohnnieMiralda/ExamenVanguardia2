@@ -22,6 +22,13 @@ namespace Hotel.Rates.Data.Repository
                 .Include(r => r.RatePlanRooms)
                 .ToList();
         }
+
+        public void minusroom(int r)
+        {
+            r -= 1;
+            inventoryContext.SaveChanges();
+        }
+        
     }
 
 }
